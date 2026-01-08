@@ -1,3 +1,6 @@
+"use client";
+import { useEffect, useState } from "react";
+import { socket } from "@/lib/socket";
 import CommentForm from "./commentForm";
 
 interface Comment {
@@ -11,31 +14,29 @@ interface CommentsListProps {
   postId: string | null;
 }
 
-const comments: Comment[] = [
-  {
-    commentId: "1",
-    userName: "Anas Ghnaim",
-    time: "2 min",
-    description:
-      "I think this is one of the best blogs about meta ai I have read I think this is one of the best blogs about meta ai I have read I think this is one of the best blogs about meta ai I have read",
-  },
-  {
-    commentId: "2",
-    userName: "Hamza Ghnaim",
-    time: "42 min",
-    description:
-      "I think this is one of the best blogs about meta ai I have read",
-  },
-  {
-    commentId: "3",
-    userName: "Omar Ghnaim",
-    time: "4 min",
-    description:
-      "I think this is one of the best blogs about meta ai I have read",
-  },
-];
-
 export default function CommentsList({ postId }: CommentsListProps) {
+  const [comments, setComments] = useState<Comment[]>([]);
+
+  useEffect(() => {
+    if (!postId) return;
+
+    socket.emit("join-post", postId);
+
+    socket.on("comments:init", (initialComments: Comment[]) => {
+      setComments(initialComments);
+    });
+
+    socket.on("new-comment", (comment: Comment) => {
+      setComments((prev) => [...prev, comment]);
+    });
+
+    return () => {
+      socket.emit("leave-post", postId);
+      socket.off("new-comment");
+      socket.off("comments:init");
+    };
+  }, [postId]);
+
   if (!postId) return null;
   return (
     <div className="bg-white p-4 rounded-2xl border-2 border-indigo-500 text-indigo-700 relative ">

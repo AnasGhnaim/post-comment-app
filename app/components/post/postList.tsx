@@ -1,42 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-
+import { socket } from "@/lib/socket";
 import Modal from "./modal";
 import PostForm from "./postForm";
 import CommentsList from "../comment/commentList";
 
-const posts = [
-  {
-    id: "1",
-    Title: "Meta AI",
-    Decription:
-      "Meta AI was published in 2023 and added to Instagram and Facebook.",
-    Image: "/post-images/coding-event.jpg",
-    Time: "22 Feb 2025",
-  },
-  {
-    id: "2",
-    Title: "Meta AI",
-    Decription:
-      "Meta AI was published in 2023 and added to Instagram and Facebook.",
-    Image: "/post-images/coding-event.jpg",
-    Time: "22 Feb 2025",
-  },
-  {
-    id: "3",
-    Title: "Meta AI",
-    Decription:
-      "Meta AI was published in 2023 and added to Instagram and Facebook.",
-    Image: "/post-images/coding-event.jpg",
-    Time: "22 Feb 2025",
-  },
-];
+interface Post {
+  id: string;
+  title: string;
+  description: string;
+  time: string;
+  image?: string;
+}
 
 export default function PostList() {
+  const [posts, setPosts] = useState<Post[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [activePostId, setActivePostId] = useState<string | null>(null);
+
+  useEffect(() => {
+    socket.connect();
+
+    // get posts from server (dummyPosts from backend)
+    socket.on("posts:init", (serverPosts: Post[]) => {
+      setPosts(serverPosts);
+    });
+
+    // Listen for new posts
+    socket.on("new-post", (post: Post) => {
+      setPosts((prev) => [post, ...prev]);
+    });
+
+    return () => {
+      socket.off("posts:init");
+      socket.off("new-post");
+      socket.disconnect();
+    };
+  }, []);
 
   return (
     <section className="mt-16 px-6 md:px-12 font-sans">
@@ -59,28 +61,26 @@ export default function PostList() {
             key={post.id}
             className="bg-white border-2 border-indigo-500 rounded-xl shadow-md hover:shadow-xl transition-shadow p-6"
           >
-            {/* Image */}
             <div className="flex justify-center mb-6">
               <Image
-                src={post.Image}
-                alt={post.Title}
+                src={post.image || "/post-images/coding-event.jpg"}
+                alt={post.title}
                 width={120}
                 height={120}
-                preload
                 className="rounded-lg object-cover"
               />
             </div>
 
             <h2 className="text-2xl font-semibold text-indigo-700 mb-2 text-center">
-              {post.Title}
+              {post.title}
             </h2>
 
             <p className="text-sm text-gray-500 text-center mb-4">
-              📅 {post.Time}
+              📅 {post.time}
             </p>
 
             <p className="text-gray-600 text-center leading-relaxed mb-4">
-              {post.Decription}
+              {post.description}
             </p>
 
             {/* Open comments */}

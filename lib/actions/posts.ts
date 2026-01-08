@@ -5,6 +5,16 @@ interface ActionResult {
   error?: string;
 }
 
+interface Post {
+  id: string;
+  title: string;
+  description: string;
+  time: string;
+  image?: string;
+}
+
+const dummyPosts: Post[] = [];
+
 export async function createPost(
   _prevState: ActionResult,
   formData: FormData
@@ -24,6 +34,23 @@ export async function createPost(
     };
   }
 
-  // all validations correct
+  const post: Post = {
+    id: Date.now().toString(),
+    title,
+    description,
+    time: new Date(date).toLocaleDateString(),
+    image: image ? URL.createObjectURL(image) : undefined,
+  };
+
+  // Save to dummy array
+  dummyPosts.unshift(post);
+
+  // Emit via backend (so socket.io clients receive it)
+  await fetch("http://localhost:3001/emit/post", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ post }),
+  });
+
   return { success: true };
 }

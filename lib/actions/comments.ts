@@ -5,6 +5,14 @@ interface ActionResult {
   error?: string;
 }
 
+interface Comment {
+  commentId: string;
+  userName: string;
+  time: string;
+  description: string;
+  postId: string;
+}
+
 export async function creatComment(
   _prevState: ActionResult,
   formData: FormData
@@ -26,5 +34,19 @@ export async function creatComment(
         "Missing required fields or the description length must be between 10 -1000 characters",
     };
   }
+  const comment = {
+    commentId: crypto.randomUUID(),
+    userName: "Anonymous",
+    time: "just now",
+    description,
+    postId,
+  };
+
+  await fetch("http://localhost:3001/emit/comment", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ postId, comment }),
+  });
+
   return { success: true };
 }

@@ -70,7 +70,7 @@ export default function PostForm({ onClose }: PostFormProps) {
         <textarea
           id="description"
           name="description"
-          placeholder="Post Discreption"
+          placeholder="Post Description"
           rows={5}
           required
           className="w-full px-4 py-3 rounded-lg bg-black resize-none focus:ring-2 focus:ring-indigo-500"
@@ -88,20 +88,6 @@ export default function PostForm({ onClose }: PostFormProps) {
           type="date"
           required
           className="w-full px-4 py-3 rounded-lg bg-black focus:ring-2 focus:ring-indigo-500"
-        />
-      </div>
-
-      {/* Image */}
-      <div className="mb-6">
-        <label htmlFor="image" className="block mb-2">
-          Add Image:
-        </label>
-        <input
-          id="image"
-          name="image"
-          type="file"
-          accept="image/*"
-          className="w-full text-sm"
         />
       </div>
 

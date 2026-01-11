@@ -3,6 +3,7 @@
 interface ActionResult {
   success: boolean;
   error?: string;
+  comment?: Comment;
 }
 
 interface Comment {
@@ -18,14 +19,16 @@ export async function creatComment(
   formData: FormData
 ): Promise<ActionResult> {
   const description = formData.get("description") as string;
-  const postId = formData.get("postId");
+  const postIdValue = formData.get("postId");
 
-  if (!postId) {
+  if (!postIdValue || typeof postIdValue !== "string") {
     return {
       success: false,
       error: "Post not found.",
     };
   }
+
+  const postId = postIdValue;
 
   if (!description || description.length < 10 || description.length > 1000) {
     return {
@@ -34,7 +37,7 @@ export async function creatComment(
         "Missing required fields or the description length must be between 10 -1000 characters",
     };
   }
-  const comment = {
+  const comment: Comment = {
     commentId: crypto.randomUUID(),
     userName: "Anonymous",
     time: "just now",
@@ -42,11 +45,5 @@ export async function creatComment(
     postId,
   };
 
-  await fetch("http://localhost:3001/emit/comment", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ postId, comment }),
-  });
-
-  return { success: true };
+  return { success: true, comment };
 }

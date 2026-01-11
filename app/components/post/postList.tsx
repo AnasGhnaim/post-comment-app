@@ -24,17 +24,17 @@ export default function PostList() {
     const initializePosts = (serverPosts: Post[]) => {
       setPosts(serverPosts);
     };
-    // get posts from server (dummyPosts from backend)
-    socket.on("posts:init", initializePosts);
 
-    // Listen for new posts
-    socket.on("new-post", (post: Post) => {
+    const onNewPost = (post: Post) => {
       setPosts((prev) => [post, ...prev]);
-    });
+    };
+
+    socket.on("posts:init", initializePosts);
+    socket.on("new-post", onNewPost);
 
     return () => {
       socket.off("posts:init", initializePosts);
-      socket.off("new-post", initializePosts);
+      socket.off("new-post", onNewPost);
     };
   }, []);
 

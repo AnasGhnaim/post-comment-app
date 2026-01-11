@@ -3,6 +3,7 @@
 interface ActionResult {
   success: boolean;
   error?: string;
+  post?: Post;
 }
 
 interface Post {
@@ -35,22 +36,14 @@ export async function createPost(
   }
 
   const post: Post = {
-    id: Date.now().toString(),
+    id: crypto.randomUUID(),
     title,
     description,
     time: new Date(date).toLocaleDateString(),
-    image: image ? URL.createObjectURL(image) : undefined,
   };
 
   // Save to dummy array
   dummyPosts.unshift(post);
 
-  // Emit via backend (so socket.io clients receive it)
-  await fetch("http://localhost:3001/emit/post", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ post }),
-  });
-
-  return { success: true };
+  return { success: true, post };
 }

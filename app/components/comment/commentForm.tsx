@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { socket } from "@/lib/socket";
 import { creatComment } from "@/lib/actions/comments";
 import Spinner from "../spinner";
 
@@ -11,6 +12,7 @@ interface CommentFormProps {
 const initialState = {
   success: false,
   error: undefined,
+  comment: undefined,
 };
 
 export default function CommentForm({ postId }: CommentFormProps) {
@@ -18,6 +20,13 @@ export default function CommentForm({ postId }: CommentFormProps) {
     creatComment,
     initialState
   );
+
+  useEffect(() => {
+    if (state.success && state.comment) {
+      socket.emit("create-comment", state.comment);
+    }
+  }, [state.success, state.comment, postId]);
+
   return (
     <div>
       <form

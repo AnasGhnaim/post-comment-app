@@ -1,7 +1,7 @@
 "use client";
-
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { createPost } from "@/lib/actions/posts";
+import { socket } from "@/lib/socket";
 import Spinner from "../spinner";
 
 interface PostFormProps {
@@ -11,6 +11,7 @@ interface PostFormProps {
 const initialState = {
   success: false,
   error: undefined,
+  post: undefined,
 };
 
 export default function PostForm({ onClose }: PostFormProps) {
@@ -18,6 +19,13 @@ export default function PostForm({ onClose }: PostFormProps) {
     createPost,
     initialState
   );
+
+  useEffect(() => {
+    if (state.success && state.post) {
+      socket.emit("create-post", state.post);
+      onClose();
+    }
+  }, [state.success, state.post, onClose]);
 
   return (
     <form

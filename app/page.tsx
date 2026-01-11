@@ -14,6 +14,7 @@ export default function Home() {
       socket.disconnect();
     };
   }, []);
+
   return (
     <>
       <div className="flex mt-10 items-center justify-center bg-zinc-50 font-sans dark:bg-black">

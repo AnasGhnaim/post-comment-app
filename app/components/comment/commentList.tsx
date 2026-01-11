@@ -20,11 +20,12 @@ export default function CommentsList({ postId }: CommentsListProps) {
   useEffect(() => {
     if (!postId) return;
 
+    const initialComments = (serverComment: Comment[]) => {
+      setComments(serverComment);
+    };
     socket.emit("join-post", postId);
 
-    socket.on("comments:init", (initialComments: Comment[]) => {
-      setComments(initialComments);
-    });
+    socket.on("comments:init", initialComments);
 
     socket.on("new-comment", (comment: Comment) => {
       setComments((prev) => [...prev, comment]);
@@ -32,8 +33,8 @@ export default function CommentsList({ postId }: CommentsListProps) {
 
     return () => {
       socket.emit("leave-post", postId);
-      socket.off("new-comment");
-      socket.off("comments:init");
+      socket.off("new-comment", initialComments);
+      socket.off("comments:init", initialComments);
     };
   }, [postId]);
 

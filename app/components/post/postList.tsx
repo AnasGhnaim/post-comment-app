@@ -21,12 +21,11 @@ export default function PostList() {
   const [activePostId, setActivePostId] = useState<string | null>(null);
 
   useEffect(() => {
-    socket.connect();
-
-    // get posts from server (dummyPosts from backend)
-    socket.on("posts:init", (serverPosts: Post[]) => {
+    const initializePosts = (serverPosts: Post[]) => {
       setPosts(serverPosts);
-    });
+    };
+    // get posts from server (dummyPosts from backend)
+    socket.on("posts:init", initializePosts);
 
     // Listen for new posts
     socket.on("new-post", (post: Post) => {
@@ -34,9 +33,8 @@ export default function PostList() {
     });
 
     return () => {
-      socket.off("posts:init");
-      socket.off("new-post");
-      socket.disconnect();
+      socket.off("posts:init", initializePosts);
+      socket.off("new-post", initializePosts);
     };
   }, []);
 

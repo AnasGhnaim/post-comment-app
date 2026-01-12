@@ -6,6 +6,10 @@ import { creatComment } from "@/lib/actions/comments";
 import Spinner from "../spinner";
 
 interface CommentFormProps {
+  id: string;
+  userName: string;
+  description: string;
+  time: string;
   postId: string;
 }
 
@@ -25,7 +29,7 @@ export default function CommentForm({ postId }: CommentFormProps) {
     if (state.success && state.comment) {
       socket.emit("create-comment", state.comment);
     }
-  }, [state.success, state.comment, postId]);
+  }, [state.success, state.comment]);
 
   return (
     <div>

@@ -1,4 +1,5 @@
 "use server";
+import prisma from "../db";
 
 interface ActionResult {
   success: boolean;
@@ -13,8 +14,6 @@ interface Post {
   time: string;
   image?: string;
 }
-
-const dummyPosts: Post[] = [];
 
 export async function createPost(
   _prevState: ActionResult,
@@ -35,15 +34,27 @@ export async function createPost(
     };
   }
 
-  const post: Post = {
-    id: crypto.randomUUID(),
-    title,
-    description,
-    time: new Date(date).toLocaleDateString(),
-  };
+  try {
+    const newPost = await prisma.post.create({
+      data: {
+        title,
+        description,
+        time: new Date(date).toLocaleDateString(),
+        image: null,
+      },
+    });
 
-  // Save to dummy array
-  dummyPosts.unshift(post);
+    const post: Post = {
+      id: newPost.id,
+      title: newPost.title,
+      description: newPost.description,
+      time: newPost.time as string,
+      image: newPost.image ?? undefined,
+    };
 
-  return { success: true, post };
+    return { success: true, post };
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: "Failed to create post" };
+  }
 }

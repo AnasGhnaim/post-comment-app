@@ -1,17 +1,17 @@
 "use server";
 
+import prisma from "@/lib/db";
+
 interface ActionResult {
   success: boolean;
   error?: string;
-  comment?: Comment;
-}
-
-interface Comment {
-  commentId: string;
-  userName: string;
-  time: string;
-  description: string;
-  postId: string;
+  comment?: {
+    id: string;
+    userName: string;
+    description: string;
+    time: string;
+    postId: string;
+  };
 }
 
 export async function creatComment(
@@ -21,29 +21,39 @@ export async function creatComment(
   const description = formData.get("description") as string;
   const postIdValue = formData.get("postId");
 
-  if (!postIdValue || typeof postIdValue !== "string") {
-    return {
-      success: false,
-      error: "Post not found.",
-    };
+  if (!postIdValue || typeof postIdValue !== "string" || postIdValue === "") {
+    return { success: false, error: "Post not found." };
   }
-
-  const postId = postIdValue;
 
   if (!description || description.length < 10 || description.length > 1000) {
     return {
       success: false,
-      error:
-        "Missing required fields or the description length must be between 10 -1000 characters",
+      error: "Description must be between 10 and 1000 characters",
     };
   }
-  const comment: Comment = {
-    commentId: crypto.randomUUID(),
-    userName: "Anonymous",
-    time: "just now",
-    description,
-    postId,
-  };
 
-  return { success: true, comment };
+  try {
+    // Save comment to database
+    const newComment = await prisma.comment.create({
+      data: {
+        userName: "Anonymous",
+        description,
+        postId: postIdValue,
+      },
+    });
+
+    return {
+      success: true,
+      comment: {
+        id: newComment.id,
+        userName: newComment.userName,
+        description: newComment.description,
+        time: newComment.createdAt.toISOString(),
+        postId: newComment.postId,
+      },
+    };
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: "Failed to create comment" };
+  }
 }

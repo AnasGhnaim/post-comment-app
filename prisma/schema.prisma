@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  time        String
+  image       String?
+  createdAt   DateTime @default(now())
+
+  comments Comment[]
+}
+
+model Comment {
+  id          String   @id @default(cuid())
+  userName    String
+  description String
+  createdAt   DateTime @default(now())
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+}

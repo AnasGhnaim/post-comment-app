@@ -21,6 +21,16 @@ export default function PostList() {
   const [activePostId, setActivePostId] = useState<string | null>(null);
 
   useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const res = await fetch("/api/posts");
+        const data: Post[] = await res.json();
+        setPosts(data);
+      } catch (err) {
+        console.error("Failed to fetch posts:", err);
+      }
+    };
+    fetchPosts();
     const initializePosts = (serverPosts: Post[]) => {
       setPosts(serverPosts);
     };

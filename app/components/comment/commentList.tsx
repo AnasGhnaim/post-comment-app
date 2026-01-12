@@ -1,53 +1,55 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { socket } from "@/lib/socket";
 import CommentForm from "./commentForm";
 
 interface Comment {
-  commentId: string;
+  id: string;
   userName: string;
-  time: string;
   description: string;
+  time: string;
+  postId: string;
 }
 
 interface CommentsListProps {
-  postId: string | null;
+  postId: string; // always defined
 }
 
 export default function CommentsList({ postId }: CommentsListProps) {
   const [comments, setComments] = useState<Comment[]>([]);
 
   useEffect(() => {
-    if (!postId) return;
-
-    const initialComments = (serverComment: Comment[]) => {
-      setComments(serverComment);
+    // Fetch initial comments from Prisma
+    const fetchComments = async () => {
+      const res = await fetch(`/api/comments/${postId}`);
+      const data = await res.json();
+      setComments(data);
     };
+    fetchComments();
+
+    // Join Socket.io room
     socket.emit("join-post", postId);
 
-    socket.on("comments:init", (initialComments: Comment[]) => {
-      setComments(initialComments);
-    });
-
     socket.on("new-comment", (comment: Comment) => {
-      setComments((prev) => [...prev, comment]);
+      if (comment.postId === postId) {
+        setComments((prev) => [...prev, comment]);
+      }
     });
 
     return () => {
       socket.emit("leave-post", postId);
       socket.off("new-comment");
-      socket.off("comments:init", initialComments);
     };
   }, [postId]);
 
-  if (!postId) return null;
   return (
     <div className="bg-white p-4 rounded-2xl border-2 border-indigo-500 text-indigo-700 relative ">
       <h2 className="text-2xl">Comments</h2>
       <div className="flex flex-col gap-2 mb-2 font-sans ">
         {comments.map((c) => (
           <div
-            key={c.commentId}
+            key={c.id}
             className="grid grid-rows gap-0.5 text-sm text-black mt-4 px-0.5 border border-black bg-indigo-500 "
           >
             <h2 className="text-xl">{c.userName}</h2>
@@ -63,7 +65,14 @@ export default function CommentsList({ postId }: CommentsListProps) {
           </div>
         ))}
       </div>
-      <CommentForm postId={postId} />
+
+      <CommentForm
+        postId={postId}
+        id={""}
+        userName={""}
+        description={""}
+        time={""}
+      />
     </div>
   );
 }
